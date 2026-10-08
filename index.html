@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Secret Santa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Old+Standard+TT:ital,wght@0,400;0,700;1,400&family=Pinyon+Script&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --baize:#13332A;
+    --baize-dark:#0C231D;
+    --card:#F4EDDF;
+    --card-edge:#E2D7C1;
+    --ink:#2B2318;
+    --faint:#7C7060;
+    --rule:#CBBCA0;
+    --claret:#8B2B2B;
+    --claret-dark:#6E1F1F;
+    --gilt:#A8863C;
+    --gilt-light:#C9A758;
+    --display: "Old Standard TT", Georgia, "Times New Roman", serif;
+    --script: "Pinyon Script", "Snell Roundhand", "Apple Chancery", cursive;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--baize);
+    background-image:radial-gradient(ellipse at 50% 0%, #1B4438 0%, var(--baize) 45%, var(--baize-dark) 100%);
+    background-attachment:fixed;
+    color:var(--ink);
+    font-family:var(--display);
+    font-size:17px;
+    line-height:1.55;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  main{
+    max-width:580px;
+    margin:0 auto;
+    padding:28px 16px 64px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--card-edge);
+    box-shadow:0 1px 0 rgba(255,255,255,.5) inset, 0 18px 40px rgba(0,0,0,.35);
+    padding:36px 30px 34px;
+  }
+
+  /* masthead */
+  .masthead{text-align:center;margin-bottom:34px}
+  .masthead h1{
+    font-family:var(--display);
+    font-weight:700;
+    font-size:40px;
+    line-height:1;
+    margin:0;
+    letter-spacing:.01em;
+  }
+  .masthead .sub{
+    font-style:italic;
+    color:var(--claret);
+    font-size:18px;
+    margin:6px 0 0;
+  }
+  .rule{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin:16px 0 0;
+  }
+  .rule::before,.rule::after{
+    content:"";
+    height:1px;
+    background:var(--rule);
+    flex:1;
+    max-width:150px;
+  }
+  .rule svg{display:block}
+  .lede{
+    color:var(--faint);
+    font-size:16px;
+    text-align:center;
+    margin:18px auto 0;
+    max-width:40ch;
+  }
+
+  /* steps */
+  .step{margin-top:30px;padding-top:26px;border-top:1px double var(--rule)}
+  .step h2{
+    font-size:21px;
+    font-weight:700;
+    margin:0 0 3px;
+  }
+  .step h2 .n{
+    font-family:var(--script);
+    font-size:32px;
+    color:var(--claret);
+    margin-right:8px;
+    line-height:0;
+    position:relative;
+    top:3px;
+  }
+  .step > p{
+    color:var(--faint);
+    font-size:15px;
+    font-style:italic;
+    margin:0 0 16px;
+    max-width:44ch;
+  }
+
+  input[type=text], select{
+    font-family:var(--display);
+    font-size:17px;
+    color:var(--ink);
+    background:#FBF7EE;
+    border:1px solid var(--rule);
+    border-radius:0;
+    padding:9px 11px;
+    width:100%;
+  }
+  select{appearance:none}
+  input::placeholder{color:#A79C8B;font-style:italic}
+  :focus-visible{outline:2px solid var(--claret);outline-offset:2px}
+
+  button{
+    font-family:var(--display);
+    font-size:16px;
+    color:var(--ink);
+    background:#FBF7EE;
+    border:1px solid var(--rule);
+    border-radius:0;
+    padding:9px 14px;
+    cursor:pointer;
+  }
+  button:hover{border-color:var(--claret);color:var(--claret)}
+  button.primary{
+    background:var(--claret);
+    border:1px solid var(--claret-dark);
+    color:#F7EFE0;
+    width:100%;
+    padding:13px;
+    font-size:19px;
+    box-shadow:0 1px 0 rgba(255,255,255,.18) inset;
+  }
+  button.primary:hover{background:var(--claret-dark);border-color:var(--claret-dark);color:#F7EFE0}
+  button.small{font-size:14px;padding:5px 11px}
+  button.bare{border:none;background:none;color:var(--faint);font-size:22px;line-height:1;padding:4px 6px}
+  button.bare:hover{color:var(--claret)}
+
+  .row{display:flex;gap:8px;align-items:center}
+  .row > *:first-child{flex:1}
+  .row.pair > select{flex:1;min-width:0}
+  .row.pair > button{flex:none}
+
+  ul{list-style:none;margin:14px 0 0;padding:0}
+  li.entry{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 0;
+    border-bottom:1px dotted var(--rule);
+  }
+  li.entry .who{flex:1;font-size:17px}
+  li.entry .who .amp{color:var(--claret);font-style:italic;padding:0 7px}
+  .empty{color:var(--faint);font-style:italic;font-size:15px;padding:8px 0}
+  .hint{color:var(--faint);font-size:14px;font-style:italic;margin-top:12px}
+  .error{color:var(--claret);font-size:15px;margin-top:14px}
+  .note{
+    border-left:3px solid var(--gilt);
+    padding:4px 0 4px 14px;
+    color:var(--faint);
+    font-size:15px;
+    margin:0 0 20px;
+  }
+  .checkline{display:flex;gap:11px;align-items:flex-start;font-size:17px;cursor:pointer}
+  .checkline input{margin:5px 0 0;accent-color:var(--claret);width:16px;height:16px;flex:none}
+  .checkline em{display:block;color:var(--faint);font-size:14px;line-height:1.45}
+  .stack{display:flex;flex-direction:column;gap:11px;margin-top:22px}
+
+  /* reveal */
+  .reveal{max-width:520px}
+  .reveal .card{text-align:center;padding:40px 26px 38px}
+  .addressed{font-size:18px;margin:0 0 4px;color:var(--faint);font-style:italic}
+  .addressed b{color:var(--ink);font-style:normal;font-weight:700}
+  .present{display:block;margin:22px auto 0;width:min(230px,62vw);height:auto;cursor:pointer;background:none;border:none;padding:0}
+  .present:hover .lid{transform:translateY(-4px)}
+  .lid{transform-origin:120px 100px;transition:transform .25s ease}
+  .opening .lid{
+    transform:translate(-46px,-190px) rotate(-24deg);
+    transition:transform .75s cubic-bezier(.3,.05,.4,1);
+    opacity:0;
+    transition-property:transform,opacity;
+  }
+  .opening .box{transform:translateY(4px);transition:transform .5s ease}
+  .caption{color:var(--faint);font-size:15px;font-style:italic;margin:18px auto 0;max-width:32ch}
+
+  .string{display:block;margin:0 auto;width:2px;height:34px;background:linear-gradient(var(--rule),var(--gilt))}
+  .tag{
+    background:#FCFAF4;
+    border:1px solid var(--gilt);
+    padding:34px 22px 28px;
+    margin:0 auto;
+    max-width:340px;
+    clip-path:polygon(50% 0, 100% 13%, 100% 100%, 0 100%, 0 13%);
+    box-shadow:0 8px 18px rgba(0,0,0,.14);
+  }
+  .tag .to{font-style:italic;color:var(--faint);font-size:17px;margin:0}
+  .tag .name{
+    font-family:var(--script);
+    font-size:clamp(46px,15vw,74px);
+    line-height:1.1;
+    color:var(--claret);
+    margin:4px 0 8px;
+    overflow-wrap:break-word;
+  }
+  .tag .from{font-style:italic;color:var(--faint);font-size:16px;margin:0}
+  .rise{animation:rise .55s cubic-bezier(.2,.7,.3,1) both}
+  @keyframes rise{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){
+    .rise{animation:none}
+    .opening .lid,.present:hover .lid,.opening .box{transition:none}
+  }
+  @media (max-width:420px){
+    .card{padding:28px 20px 26px}
+    .masthead h1{font-size:33px}
+  }
+</style>
+</head>
+<body>
+<main id="app"></main>
+
+<script>
+(function(){
+  "use strict";
+
+  const app = document.getElementById('app');
+  const enc = new TextEncoder();
+  const dec = new TextDecoder();
+
+  const HOLLY = '<svg width="26" height="16" viewBox="0 0 26 16" aria-hidden="true">'+
+    '<path d="M13 2c2.4 0 3.4 1.6 5 1.4-.7 1.2-.3 2 .6 2.7-1.3.5-1.6 1.4-1.4 2.6-1.6-.6-2.7-.1-3.6 1.1-.9-1.2-2-1.7-3.6-1.1.2-1.2-.1-2.1-1.4-2.6.9-.7 1.3-1.5.6-2.7C10.8 3.6 10.6 2 13 2z" fill="#2E5E42"/>'+
+    '<circle cx="11.6" cy="12.4" r="1.7" fill="#8B2B2B"/><circle cx="14.9" cy="12.9" r="1.4" fill="#8B2B2B"/>'+
+    '</svg>';
+
+  /* ---------- encoding ---------- */
+
+  function b64e(bytes){
+    let s = '';
+    for (let i=0;i<bytes.length;i++) s += String.fromCharCode(bytes[i]);
+    return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  }
+  function b64d(str){
+    str = str.replace(/-/g,'+').replace(/_/g,'/');
+    while (str.length % 4) str += '=';
+    const bin = atob(str);
+    const out = new Uint8Array(bin.length);
+    for (let i=0;i<bin.length;i++) out[i] = bin.charCodeAt(i);
+    return out;
+  }
+
+  async function seal(obj){
+    const key = await crypto.subtle.generateKey({name:'AES-GCM',length:128}, true, ['encrypt','decrypt']);
+    const raw = new Uint8Array(await crypto.subtle.exportKey('raw', key));
+    const iv  = crypto.getRandomValues(new Uint8Array(12));
+    const ct  = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM',iv}, key, enc.encode(JSON.stringify(obj))));
+    const all = new Uint8Array(raw.length + iv.length + ct.length);
+    all.set(raw,0); all.set(iv,raw.length); all.set(ct,raw.length+iv.length);
+    return b64e(all);
+  }
+
+  async function unseal(token){
+    const all = b64d(token);
+    if (all.length < 32) throw new Error('short');
+    const raw = all.slice(0,16), iv = all.slice(16,28), ct = all.slice(28);
+    const key = await crypto.subtle.importKey('raw', raw, 'AES-GCM', false, ['decrypt']);
+    const pt  = await crypto.subtle.decrypt({name:'AES-GCM',iv}, key, ct);
+    return JSON.parse(dec.decode(pt));
+  }
+
+  /* ---------- randomness ---------- */
+
+  function randInt(max){
+    if (max <= 1) return 0;
+    const buf = new Uint32Array(1);
+    const limit = Math.floor(4294967296 / max) * max;
+    let x;
+    do { crypto.getRandomValues(buf); x = buf[0]; } while (x >= limit);
+    return x % max;
+  }
+  function shuffled(arr){
+    const a = arr.slice();
+    for (let i=a.length-1;i>0;i--){
+      const j = randInt(i+1);
+      const t = a[i]; a[i] = a[j]; a[j] = t;
+    }
+    return a;
+  }
+
+  /* ---------- the draw ---------- */
+
+  function buildAllowed(n, blocked){
+    const allowed = [];
+    for (let i=0;i<n;i++){
+      const row = [];
+      for (let j=0;j<n;j++){
+        if (i === j) continue;
+        if (blocked.has(i+','+j)) continue;
+        row.push(j);
+      }
+      allowed.push(row);
+    }
+    return allowed;
+  }
+
+  const LIMIT = 400000;
+
+  function findLoop(allowed, n){
+    const path = [0];
+    const used = new Array(n).fill(false);
+    used[0] = true;
+    let steps = 0;
+    function rec(){
+      if (++steps > LIMIT) throw new Error('timeout');
+      const cur = path[path.length-1];
+      if (path.length === n) return allowed[cur].indexOf(0) !== -1;
+      const cands = shuffled(allowed[cur].filter(j => !used[j]));
+      for (let k=0;k<cands.length;k++){
+        const nxt = cands[k];
+        used[nxt] = true; path.push(nxt);
+        if (rec()) return true;
+        path.pop(); used[nxt] = false;
+      }
+      return false;
+    }
+    if (!rec()) return null;
+    const assign = new Array(n);
+    for (let k=0;k<n;k++) assign[path[k]] = path[(k+1) % n];
+    return assign;
+  }
+
+  function findMatching(allowed, n){
+    const assign = new Array(n).fill(-1);
+    const taken  = new Array(n).fill(false);
+    const order  = shuffled(allowed.map((_,i) => i));
+    order.sort((a,b) => allowed[a].length - allowed[b].length);
+    let steps = 0;
+    function rec(k){
+      if (++steps > LIMIT) throw new Error('timeout');
+      if (k === n) return true;
+      const i = order[k];
+      const cands = shuffled(allowed[i]);
+      for (let c=0;c<cands.length;c++){
+        const j = cands[c];
+        if (taken[j]) continue;
+        taken[j] = true; assign[i] = j;
+        if (rec(k+1)) return true;
+        taken[j] = false; assign[i] = -1;
+      }
+      return false;
+    }
+    return rec(0) ? assign : null;
+  }
+
+  /* ---------- state ---------- */
+
+  const state = { names: [], pairs: [], loop: true, links: null, relaxed: false, error: '' };
+
+  const norm = s => s.trim().replace(/\s+/g,' ');
+  const key  = s => norm(s).toLowerCase();
+
+  function esc(s){
+    return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function masthead(title, sub, lede){
+    return '<header class="masthead">'+
+      '<h1>'+title+'</h1>'+
+      (sub ? '<p class="sub">'+sub+'</p>' : '')+
+      '<div class="rule">'+HOLLY+'</div>'+
+      (lede ? '<p class="lede">'+lede+'</p>' : '')+
+    '</header>';
+  }
+
+  /* ---------- setup screen ---------- */
+
+  function renderSetup(){
+    const n = state.names.length;
+    const opts = state.names.map((x,i) => '<option value="'+i+'">'+esc(x)+'</option>').join('');
+
+    app.className = '';
+    app.innerHTML = '<div class="card">' +
+      masthead('Secret Santa', 'drawn in the parlour, kept in confidence',
+        'Draw the names here, then send each person their own link. Nobody sees another\u2019s, and neither do you.') + `
+
+      <section class="step">
+        <h2><span class="n">1</span>Who is taking part?</h2>
+        <p>Use the names people will know themselves by.</p>
+        <div class="row">
+          <input type="text" id="nameInput" placeholder="Add a name" autocomplete="off">
+          <button class="small" id="addName">Add</button>
+        </div>
+        <ul>${
+          n === 0
+            ? '<li class="empty">Nobody yet.</li>'
+            : state.names.map((x,i) =>
+                '<li class="entry"><span class="who">'+esc(x)+'</span>'+
+                '<button class="bare" data-drop="'+i+'" aria-label="Remove '+esc(x)+'">&times;</button></li>').join('')
+        }</ul>
+        ${n ? '<p class="hint">'+n+' '+(n===1?'name':'names')+' in the hat.</p>' : ''}
+      </section>
+
+      <section class="step">
+        <h2><span class="n">2</span>Who should not draw each other?</h2>
+        <p>Couples, and last year\u2019s pairings. Each is blocked both ways round.</p>
+        <div class="row pair">
+          <select id="pairA" ${n<2?'disabled':''}><option value="">Person</option>${opts}</select>
+          <select id="pairB" ${n<2?'disabled':''}><option value="">Person</option>${opts}</select>
+          <button class="small" id="addPair" ${n<2?'disabled':''}>Block</button>
+        </div>
+        <ul>${
+          state.pairs.length === 0
+            ? '<li class="empty">Nothing blocked.</li>'
+            : state.pairs.map((p,i) =>
+                '<li class="entry"><span class="who">'+esc(p.a)+'<span class="amp">and</span>'+esc(p.b)+'</span>'+
+                '<button class="bare" data-unpair="'+i+'" aria-label="Unblock">&times;</button></li>').join('')
+        }</ul>
+      </section>
+
+      <section class="step">
+        <h2><span class="n">3</span>Draw the names</h2>
+        <label class="checkline">
+          <input type="checkbox" id="loop" ${state.loop?'checked':''}>
+          <span>Make it one long chain
+            <em>Everyone buys for someone who is not buying for them. Harder to satisfy if you have blocked a great many pairs.</em>
+          </span>
+        </label>
+        <div class="stack">
+          <button class="primary" id="draw">Draw the names</button>
+        </div>
+        ${state.error ? '<p class="error" role="alert">'+esc(state.error)+'</p>' : ''}
+      </section>
+    </div>`;
+
+    const nameInput = document.getElementById('nameInput');
+    const addName = () => {
+      const v = norm(nameInput.value);
+      if (!v) return;
+      if (state.names.some(x => key(x) === key(v))){
+        state.error = v + ' is already on the list. Add a surname or initial to tell them apart.';
+        renderSetup(); return;
+      }
+      state.names.push(v);
+      state.error = '';
+      renderSetup();
+      document.getElementById('nameInput').focus();
+    };
+    document.getElementById('addName').onclick = addName;
+    nameInput.addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); addName(); }});
+
+    app.querySelectorAll('[data-drop]').forEach(b => b.onclick = () => {
+      const gone = state.names[+b.dataset.drop];
+      state.names.splice(+b.dataset.drop, 1);
+      state.pairs = state.pairs.filter(p => p.a !== gone && p.b !== gone);
+      state.error = '';
+      renderSetup();
+    });
+
+    const addPair = document.getElementById('addPair');
+    if (addPair) addPair.onclick = () => {
+      const ai = document.getElementById('pairA').value;
+      const bi = document.getElementById('pairB').value;
+      if (ai === '' || bi === '') return;
+      const a = state.names[+ai], b = state.names[+bi];
+      if (a === b){ state.error = 'Pick two different people.'; renderSetup(); return; }
+      if (state.pairs.some(p => (p.a===a&&p.b===b) || (p.a===b&&p.b===a))){
+        state.error = 'That pair is already blocked.'; renderSetup(); return;
+      }
+      state.pairs.push({a,b});
+      state.error = '';
+      renderSetup();
+    };
+
+    app.querySelectorAll('[data-unpair]').forEach(b => b.onclick = () => {
+      state.pairs.splice(+b.dataset.unpair, 1);
+      state.error = '';
+      renderSetup();
+    });
+
+    document.getElementById('loop').onchange = e => { state.loop = e.target.checked; };
+    document.getElementById('draw').onclick = doDraw;
+  }
+
+  /* ---------- draw + links ---------- */
+
+  async function doDraw(){
+    const names = state.names;
+    const n = names.length;
+    state.error = '';
+
+    if (n < 3){ state.error = 'You need at least three people.'; return renderSetup(); }
+
+    const idx = {};
+    names.forEach((x,i) => idx[x] = i);
+    const blocked = new Set();
+    state.pairs.forEach(p => {
+      blocked.add(idx[p.a]+','+idx[p.b]);
+      blocked.add(idx[p.b]+','+idx[p.a]);
+    });
+
+    const allowed = buildAllowed(n, blocked);
+    const stuck = allowed.map((r,i) => r.length === 0 ? names[i] : null).filter(Boolean);
+    if (stuck.length){
+      state.error = stuck.join(' and ') + ' cannot be paired with anyone. Remove a blocked pair.';
+      return renderSetup();
+    }
+
+    let assign = null, relaxed = false;
+    try {
+      if (state.loop){
+        assign = findLoop(allowed, n);
+        if (!assign){ assign = findMatching(allowed, n); relaxed = !!assign; }
+      } else {
+        assign = findMatching(allowed, n);
+      }
+    } catch (e) {
+      state.error = 'Too many blocked pairs to work through. Remove a few and draw again.';
+      return renderSetup();
+    }
+
+    if (!assign){
+      state.error = 'No draw is possible with those blocked pairs. Remove at least one and try again.';
+      return renderSetup();
+    }
+
+    const base = location.href.split('#')[0];
+    const links = [];
+    for (let i=0;i<n;i++){
+      links.push({ name: names[i], url: base + '#s=' + await seal({g:names[i], r:names[assign[i]]}) });
+    }
+    state.links = links;
+    state.relaxed = relaxed;
+    renderLinks();
+  }
+
+  function messageFor(l){
+    return 'Secret Santa is drawn. Here is your present, waiting to be opened. Do it on your own and keep it to yourself.\n\n' + l.url;
+  }
+
+  function renderLinks(){
+    app.className = '';
+    app.innerHTML = '<div class="card">' +
+      masthead('Drawn', 'the hat is empty',
+        'Send each person their link on its own. Not in the group chat, and not opened by anybody else.') +
+      (state.relaxed ? '<p class="note">One long chain was not possible with those blocked pairs, so a couple of people may have drawn each other. Everything else held.</p>' : '') +
+      '<ul>' + state.links.map((l,i) =>
+        '<li class="entry"><span class="who">'+esc(l.name)+'</span>'+
+        '<button class="small" data-copy="'+i+'">Copy message</button></li>').join('') + '</ul>' +
+      '<div class="stack">'+
+        '<button id="save">Save all links to a file</button>'+
+        '<button id="again">Start again</button>'+
+      '</div>'+
+      '<p class="hint">Nothing is stored anywhere and the links never expire, so if somebody loses theirs, send it again from the saved file. Drawing again changes everyone\u2019s link.</p>'+
+    '</div>';
+
+    app.querySelectorAll('[data-copy]').forEach(b => b.onclick = async () => {
+      const l = state.links[+b.dataset.copy];
+      try {
+        await navigator.clipboard.writeText(messageFor(l));
+        b.textContent = 'Copied';
+      } catch (e) {
+        b.textContent = 'Copy failed';
+      }
+      setTimeout(() => { b.textContent = 'Copy message'; }, 1800);
+    });
+
+    document.getElementById('save').onclick = () => {
+      const body = state.links.map(l => l.name + ':\n' + l.url).join('\n\n') + '\n';
+      const blob = new Blob([body], {type:'text/plain'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'secret-santa-links.txt';
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+    };
+
+    document.getElementById('again').onclick = () => {
+      state.links = null; state.relaxed = false; state.error = '';
+      renderSetup();
+    };
+  }
+
+  /* ---------- the present ---------- */
+
+  function presentSVG(){
+    return '<svg viewBox="0 0 240 250" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">'+
+      '<ellipse cx="120" cy="234" rx="92" ry="9" fill="rgba(0,0,0,.16)"/>'+
+      '<g class="box">'+
+        '<rect x="34" y="116" width="172" height="114" fill="#8B2B2B"/>'+
+        '<rect x="34" y="116" width="172" height="114" fill="none" stroke="#6E1F1F" stroke-width="2"/>'+
+        '<path d="M46 128h148M46 218h148" stroke="rgba(255,255,255,.07)" stroke-width="1"/>'+
+        '<rect x="106" y="116" width="28" height="114" fill="#A8863C"/>'+
+        '<rect x="106" y="116" width="28" height="114" fill="none" stroke="#8A6B2A" stroke-width="1"/>'+
+        '<path d="M113 120v104M127 120v104" stroke="#C9A758" stroke-width="1" opacity=".55"/>'+
+      '</g>'+
+      '<g class="lid">'+
+        '<rect x="24" y="84" width="192" height="34" fill="#94302F"/>'+
+        '<rect x="24" y="84" width="192" height="34" fill="none" stroke="#6E1F1F" stroke-width="2"/>'+
+        '<rect x="106" y="84" width="28" height="34" fill="#A8863C"/>'+
+        '<rect x="106" y="84" width="28" height="34" fill="none" stroke="#8A6B2A" stroke-width="1"/>'+
+        '<path d="M120 86C92 68 84 42 102 38c16-4 20 26 18 48z" fill="#A8863C" stroke="#8A6B2A" stroke-width="1.5"/>'+
+        '<path d="M120 86c28-18 36-44 18-48-16-4-20 26-18 48z" fill="#B99648" stroke="#8A6B2A" stroke-width="1.5"/>'+
+        '<path d="M120 86c-10 4-22 12-30 22M120 86c10 4 22 12 30 22" stroke="#A8863C" stroke-width="6" fill="none" stroke-linecap="round"/>'+
+        '<ellipse cx="120" cy="86" rx="14" ry="10" fill="#C9A758" stroke="#8A6B2A" stroke-width="1.5"/>'+
+      '</g>'+
+    '</svg>';
+  }
+
+  async function renderReveal(token){
+    app.className = 'reveal';
+    app.innerHTML = '<div class="card"><p class="addressed">Opening\u2026</p></div>';
+
+    let data;
+    try {
+      data = await unseal(token);
+    } catch (e) {
+      app.innerHTML = '<div class="card">' +
+        masthead('Nothing inside', '', '') +
+        '<p class="addressed">This link did not open.</p>'+
+        '<p class="caption">It was most likely cut short on its way to you. Ask whoever organised the draw to send the whole thing again.</p>'+
+      '</div>';
+      return;
+    }
+
+    app.innerHTML = '<div class="card">' +
+      masthead('A present for you', '', '') +
+      '<p class="addressed">Left under the tree for <b>'+esc(data.g)+'</b></p>'+
+      '<button class="present" id="open" aria-label="Open the present">'+presentSVG()+'</button>'+
+      '<p class="caption">Open it when nobody is reading over your shoulder.</p>'+
+    '</div>';
+
+    const btn = document.getElementById('open');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    btn.onclick = () => {
+      btn.disabled = true;
+      btn.classList.add('opening');
+      setTimeout(showTag, reduced ? 0 : 700);
+    };
+
+    function showTag(){
+      app.innerHTML = '<div class="card">' +
+        masthead('Opened', '', '') +
+        '<div class="rise">'+
+          '<div class="string"></div>'+
+          '<div class="tag">'+
+            '<p class="to">To</p>'+
+            '<p class="name">'+esc(data.r)+'</p>'+
+            '<p class="from">from '+esc(data.g)+'</p>'+
+          '</div>'+
+        '</div>'+
+        '<p class="caption">Not a word to anyone. This link will show the same name whenever you come back to it.</p>'+
+      '</div>';
+    }
+  }
+
+  /* ---------- route ---------- */
+
+  const m = location.hash.match(/^#s=(.+)$/);
+  if (m) renderReveal(m[1]);
+  else renderSetup();
+})();
+</script>
+</body>
+</html>
